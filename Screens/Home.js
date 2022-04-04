@@ -8,8 +8,9 @@ import {
 } from "react-navigation-header-buttons";
   
 const Home = (props) => {
-
-  const [data, setData] = useState([]);
+   let x=0;
+  const [spot, setSpot] = useState([]);
+  const [favourites, setFavourites] = useState([]);
 
  const getDataUsingGet = () => {
     //GET request
@@ -20,7 +21,23 @@ const Home = (props) => {
     .then(function(response) {
       // response.json() returns a promise, use the same .then syntax to work with the results
       response.json().then(function(users){
-        setData(users);
+        setSpot(users);
+        
+        // users is now our actual variable parsed from the json, so we can use it
+       users.forEach(function(user){
+        console.log(user.id + " "+ user.name);
+       });
+      });
+    }).catch(err => console.error(err)); 
+
+    fetch('https://624826c94bd12c92f4080a60.mockapi.io/favourites', {
+      method: 'GET',
+      //Request Type
+    })
+    .then(function(response) {
+      // response.json() returns a promise, use the same .then syntax to work with the results
+      response.json().then(function(users){
+        setFavourites(users);
         
         // users is now our actual variable parsed from the json, so we can use it
        users.forEach(function(user){
@@ -50,17 +67,45 @@ const Home = (props) => {
           </TouchableOpacity>
 
      { 
-     data.map(function(item){
+     spot.map(function(item){
      return (
-          <View key={item.id}
-           >
-            <TouchableOpacity style={{ padding: 20}} onPress={() => props.navigation.navigate("Details")}>
+          <View key={item.id}>
+            <TouchableOpacity style={{ padding: 20}} onPress={() => props.navigation.navigate("Details", {spotItem: item} )} >
             <Text >{" "+item.name}</Text>
             <Text >{" "+item.country}</Text>
+            {  
+            favourites.map(function(favourite){
+              if(favourite.spot==item.id)
+              x=item.id;
+             
+            })  }
+          {(() => {
+                       if(x==item.id) {
+                        x=0;
+                        return (
+                          <View key={item.id}>
+                        <Text >Favourite</Text>
+                        </View> 
+                        )
+                        
+                        }
+                        else {
+                          return (
+                            <View key={item.id}>
+                          <Text >UnFavourite</Text>
+                          </View> 
+                          )
+                        }
+                      })()}
+             
+           
+             
+              
             </TouchableOpacity>
           </View>            
      )    
 })}
+
 </ScrollView>
  
 
@@ -78,7 +123,7 @@ const HeaderButtonComponent = (props) => (
   
 Home.navigationOptions = (navData) => {
   return {
-    headerTitle: "KitesurfingApp",
+    headerTitle: "KitesurfingApps",
     headerRight: () => (
       <HeaderButtons HeaderButtonComponent={HeaderButtonComponent}>
         <Item
