@@ -1,11 +1,44 @@
-import React from "react";
-import { Text, View, TextInput } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React, {useState, useEffect} from "react";
+import { Text, View, TextInput, Button } from "react-native";
+
 import  SelectDropdown from 'react-native-select-dropdown'
 
 const FiltersScreen = (param) => {
- 
-  const countries = ["Egypt", "Canada", "Australia", "Ireland"]
+
+const [spot, setSpot] = useState([]);
+const [ wind, setWind] = useState('');
+const [ country, setCountry] = useState('');
+
+useEffect(() => {
+  getDataUsingGet();
+}, [])
+
+
+function getDataUsingGet ()  {
+  //GET request
+   fetch('https://624826c94bd12c92f4080a60.mockapi.io/spot', {
+    method: 'GET',
+    //Request Type
+  })
+  .then(function(response) {
+    // response.json() returns a promise, use the same .then syntax to work with the results
+    response.json().then(function(users){
+      setSpot(users);
+     
+    });
+  }).catch(err => console.error(err)); 
+  
+};
+
+function getCountries(){
+  let country=[];
+     country = spot.map(function(item){
+           return item.country;
+      });
+
+      return country;
+      
+}
 
   return (
     <View style={{ flex: 1, alignItems: "center",
@@ -14,18 +47,14 @@ const FiltersScreen = (param) => {
         Country
       </Text>
       <SelectDropdown
-	data={countries}
+	data={getCountries()}
 	onSelect={(selectedItem, index) => {
-		console.log(selectedItem, index)
+    setCountry(selectedItem);
 	}}
 	buttonTextAfterSelection={(selectedItem, index) => {
-		// text represented after item is selected
-		// if data array is an array of objects then return selectedItem.property to render after item is selected
 		return selectedItem
 	}}
 	rowTextForSelection={(item, index) => {
-		// text represented for each item in dropdown
-		// if data array is an array of objects then return item.property to represent item in dropdown
 		return item
 	}}
 />
@@ -35,9 +64,18 @@ const FiltersScreen = (param) => {
       <TextInput
         placeholder="Set wind probability"
         keyboardType='numeric'
+    onChangeText={text => setWind(text)}
       />
-     
+          <Button
+          
+        title="Filter"
+        color="#4169E1"
+        onPress={() => param.navigation.navigate("Home", {country: country, wind: wind })}
+        
+      />
+      
     </View>
+     
   );
 };
   
