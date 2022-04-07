@@ -1,71 +1,60 @@
-import React, { useState, useEffect } from "react";
-import { Text, View,ScrollView, TextInput, Button, TouchableOpacity, Image } from "react-native";
+import React, { useState, useEffect,     } from "react";
+import { Text, View, Button, TouchableOpacity, Image, StyleSheet } from "react-native";
+import MapView,{Marker} from 'react-native-maps';
 import { Ionicons } from "@expo/vector-icons";
 import {
   Item,
   HeaderButton,
   HeaderButtons,
 } from "react-navigation-header-buttons";
-import MapView,{Marker} from 'react-native-maps';
-function Details (navData) {
+
+const  Details = (navData) => {
 
   const [spot, setSpot] = useState([]);
   const [favourites, setFavourites] = useState([]);
+  let favourite=false;
+  
   useEffect(() => {
-    getDataUsingGet();
+    getSpotUsingGet();
+    getFavouriteUsingGet();
+    return ()=>{}
   }, [])
   
- function getDataUsingGet ()  {
-    //GET request
-     fetch(`https://624826c94bd12c92f4080a60.mockapi.io/spot/${navData.navigation.getParam("spotItem")}`, {
-      method: 'GET',
-      //Request Type
-    })
-    .then(function(response) {
-      // response.json() returns a promise, use the same .then syntax to work with the results
-      response.json().then(function(users){
-        setSpot(users);
-      });
-    }).catch(err => console.error(err)); 
 
-    fetch('https://624826c94bd12c92f4080a60.mockapi.io/favourites', {
-      method: 'GET',
-      //Request Type
-    })
-    .then(function(response) {
-      // response.json() returns a promise, use the same .then syntax to work with the results
-      response.json().then(function(users){
-        setFavourites(users);
-      });
-    }).catch(err => console.error(err)); 
-  };
+  const getSpotUsingGet =()=>  {
+    fetch(`https://624826c94bd12c92f4080a60.mockapi.io/spot/${navData.navigation.getParam("spotItem")}`, {
+     method: 'GET',
+   })
+   .then((response) => response.json())
+   .then((responseJson)=>{       
+     setSpot(responseJson);
+   }).catch(err => console.error(err)); 
+ };
 
-  const HeaderButtonComponent = (props) => (
-    <HeaderButton
-      IconComponent={Ionicons}
-      iconSize={10}
-      color="#FFF"
-      {...props}
-    />
-  );
+ const getFavouriteUsingGet = ()=>{
+   fetch('https://624826c94bd12c92f4080a60.mockapi.io/favourites', {
+     method: 'GET',
+   })
+   .then(function(response) {
+     response.json().then(function(users){
+       setFavourites(users);
+     });
+   }).catch(err => console.error(err)); 
+ }
 
-
-
-  function deleteFavourite(id) {
+  const  deleteFavourite =(id)=> {
     fetch(`https://624826c94bd12c92f4080a60.mockapi.io/favourites/${id}`, {
       method: 'DELETE'
     }).then((result) => {
       result.json().then((resp) => {
-        console.warn(resp)
-        getDataUsingGet()
+        getFavouriteUsingGet();
       })
     })
+
   }
 
-  function addFavourite(spot) {
+  const addFavourite = (spot) => {
     let item={spot};
-    console.log(spot);
-    console.warn("item",item)
     fetch(`https://624826c94bd12c92f4080a60.mockapi.io/favourites/`, {
       method: 'POST',
       headers:{
@@ -75,42 +64,54 @@ function Details (navData) {
       body:JSON.stringify(item)
     }).then((result) => {
       result.json().then((resp) => {
-        getDataUsingGet()
+        getFavouriteUsingGet();
       })
     })
   }
+  const HeaderButtonComponent = (props) => (
+    <HeaderButton
+      IconComponent={Ionicons}
+      iconSize={25}
+      color="#FFF"
+      {...props}
+    />
+  );
 
   Details.navigationOptions = (navData) => {
     return {
       headerTitle:  spot.name,
       headerRight: () => (
-        <HeaderButtons HeaderButtonComponent={HeaderButtonComponent}>
-                    {(() => {
-                       if(favourites.findIndex(e => e.spot == spot.id)>-1) {
-                         console.log();
-                       
+        
+                    (() => {
+                      if(favourites.findIndex(e => e.spot == spot.id)>-1) {
                         return (
-                         
                           <TouchableOpacity   onPress={() => deleteFavourite(favourites[favourites.findIndex(e => e.spot == spot.id)].id)} >
                         <Image style={{ padding: 5, flex: 0.1}} source={require('../assets/assetsAndroid/star-on/hdpi/star-on.png')} />
                         </TouchableOpacity>
                         )}
                         else {
                           return (
-                           
                             <TouchableOpacity   onPress={() => addFavourite(spot.id)}>
                         <Image style={{ padding: 5, flex: 0.1}} source={require('../assets/assetsAndroid/star-off/hdpi/star-off.png')} />
                         </TouchableOpacity>
                           )}
-                      })()}
-         
-        </HeaderButtons>
+                      })()
+      ),
+      headerLeft: () => ( 
+      <HeaderButtons HeaderButtonComponent={HeaderButtonComponent}>
+        <Item
+          title="Back"
+          iconName="arrow-back"
+          onPress={() => navData.navigation.navigate("Home", {favourite: favourite})}
+        />
+      </HeaderButtons>
+
+        
       ),
     }
   };
 
 return (
-  
 
      <View style={{ padding: 20}} >
      <Text > Country</Text>
@@ -134,16 +135,11 @@ return (
               <Marker
           coordinate={{latitude: parseFloat(spot.lat), longitude: parseFloat(spot.long)}}
           title="Maker"
-         
         />
         </MapView>
    </View> 
-    
-
   
   );
-
-  
 }
 
 export default Details;

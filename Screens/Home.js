@@ -1,61 +1,72 @@
-import React, { useState, useEffect } from "react";
-import { Text, View,ScrollView, TextInput, Button, TouchableOpacity, Image } from "react-native";
+import React, { useState, useEffect   } from "react";
+import { Text, View, TouchableOpacity, Image, FlatList, Platform, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  Item,
+  HeaderButton,
+  HeaderButtons,
+} from "react-navigation-header-buttons";
 
-  
-function Home  (props)  {
+const  Home = (props) =>  {
 
   const [spot, setSpot] = useState([]);
+  const [spotFilter, setSpotFilter] = useState([]);
   const [favourites, setFavourites] = useState([]);
 
-
   useEffect(() => {
-    getDataUsingGet();
-  }, [])
+  if(props.navigation.getParam("country") && props.navigation.getParam("wind")){
+    searchFilter(props.navigation.getParam("country"), props.navigation.getParam("wind"));
+     }
+else {
+  getSpotUsingGet();
+  getFavouriteUsingGet();
+}
 
+if(props.navigation.getParam("favourite")){
+  getFavouriteUsingGet();
+} 
+    return ()=>{}
+  }, [props])
 
-
-
- function getDataUsingGet ()  {
-    //GET request
+ const getSpotUsingGet =()=>  {
      fetch('https://624826c94bd12c92f4080a60.mockapi.io/spot', {
       method: 'GET',
-      //Request Type
     })
-    .then(function(response) {
-      // response.json() returns a promise, use the same .then syntax to work with the results
-      response.json().then(function(users){
-        setSpot(users);
-       
-      });
-    }).catch(err => console.error(err)); 
-    
-
-    fetch('https://624826c94bd12c92f4080a60.mockapi.io/favourites', {
-      method: 'GET',
-      //Request Type
-    })
-    .then(function(response) {
-      // response.json() returns a promise, use the same .then syntax to work with the results
-      response.json().then(function(users){
-        setFavourites(users);
-      });
+    .then((response) => response.json())
+    .then((responseJson)=>{       
+      setSpot(responseJson);
+      setSpotFilter(responseJson);
     }).catch(err => console.error(err)); 
   };
+
+  const getFavouriteUsingGet = ()=>{
+    fetch('https://624826c94bd12c92f4080a60.mockapi.io/favourites', {
+      method: 'GET',
+    })
+    .then(function(response) {
+      response.json().then(function(users){
+        setFavourites(users);
+        
+      });
+    }).catch(err => console.error(err)); 
+
+  }
   
-  function deleteFavourite(id) {
+  const deleteFavourite =(id)=> {
     fetch(`https://624826c94bd12c92f4080a60.mockapi.io/favourites/${id}`, {
       method: 'DELETE'
     }).then((result) => {
       result.json().then((resp) => {
-        console.warn(resp)
-        getDataUsingGet()
+        if(props.navigation.getParam("country")){
+          searchFilter(props.navigation.getParam("country"), props.navigation.getParam("wind"));
+          getFavouriteUsingGet(); }
+      else {
+        getFavouriteUsingGet(); }
       })
     })
   }
-  function addFavourite(spot) {
+  const addFavourite = (spot) => {
     let item={spot};
-    console.log(spot);
-    console.warn("item",item)
     fetch(`https://624826c94bd12c92f4080a60.mockapi.io/favourites/`, {
       method: 'POST',
       headers:{
@@ -65,80 +76,109 @@ function Home  (props)  {
       body:JSON.stringify(item)
     }).then((result) => {
       result.json().then((resp) => {
-        getDataUsingGet()
+        if(props.navigation.getParam("country")){
+          searchFilter(props.navigation.getParam("country"), props.navigation.getParam("wind"));
+          getFavouriteUsingGet();}
+      else {
+        getFavouriteUsingGet(); }
       })
     })
   }
 
-  function getCountries(){
-    let country=[];
-       country = spot.map(function(item){
-             return item.country;
-        });
- 
-        return country;
-        
-  }
+ const searchFilter =(country, wind)=>{
+   if (country){
+     const newData = spot.filter((item)=>{
+       if(parseFloat(item.probability) > parseFloat(wind)){
+       const itemData = item.country ? item.country.toUpperCase()
+       : ''.toUpperCase();
+       const textData=country.toUpperCase();
+       return itemData.indexOf(textData)>-1}
+     });
+     setSpotFilter(newData);
+   }else{
+    setSpotFilter(spot);
+   }
+ }
 
-  function filterSpots(spoturi){
-    if(props.navigation.getParam("country")!=null && props.navigation.getParam("wind")!=null){
-      
-        if(spoturi.country == props.navigation.getParam("country") && parseInt(spoturi.probability)>parseInt(props.navigation.getParam("wind"))){
-        return spoturi;}
-     
-    }else return spoturi;
-    console.log(props.navigation.getParam("country")+" "+ props.navigation.getParam("wind"));
-  }
-
-
-    
-
-  return (
-<ScrollView>
-     { 
-     spot.map(function(item){
-     return (
-          <View  style={{
-            flexDirection: "row",} } key={item.id}>
-            <TouchableOpacity  style={{ padding: 10, flex: 1}} onPress={() => props.navigation.navigate("Details", {spotItem: item.id } )} >
-            <Text >{" "+item.name}</Text>
-            <Text >{" "+item.country}</Text>
-            </TouchableOpacity>
-
-          {(() => {
-                       if(favourites.findIndex(e => e.spot == item.id)>-1) {
-                        return (
-                          <TouchableOpacity   onPress={() => deleteFavourite(favourites[favourites.findIndex(e => e.spot == item.id)].id)} >
-                        <Image style={{ padding: 5, flex: 0.1}} source={require('../assets/assetsAndroid/star-on/hdpi/star-on.png')} />
-                        </TouchableOpacity>
-                        )}
-                        else { 
-                          return (
-                            <TouchableOpacity   onPress={() => addFavourite(item.id)} >    
-                        <Image style={{ padding: 5, flex: 0.1}} source={require('../assets/assetsAndroid/star-off/hdpi/star-off.png')} />
-                        </TouchableOpacity>
-                          )}
-                      })()}
-          </View>            
-     )    
-})}
-</ScrollView>
-  );
-
-  
+const ItemView = ({item}) => {
+return (
+<View  style={{flexDirection: "row",} } key={item.id}>
+    <TouchableOpacity  style={styles.container} onPress={() => props.navigation.navigate("Details", {spotItem: item.id } )} >
+    <Text style={styles.name }>{" "+item.name}</Text>
+    <Text style={styles.country }>{" "+item.country}</Text>
+    </TouchableOpacity>
+  {(() => {
+               if(favourites.findIndex(e => e.spot == item.id)>-1) {
+                return (
+                  <TouchableOpacity style={styles.containerImage}  onPress={() => deleteFavourite(favourites[favourites.findIndex(e => e.spot == item.id)].id)} >
+                <Image  source={require('../assets/assetsAndroid/star-on/hdpi/star-on.png')} />
+                </TouchableOpacity>
+                )}
+                else { 
+                  return (
+                    <TouchableOpacity style={styles.containerImage}  onPress={() => addFavourite(item.id)} >    
+                <Image  source={require('../assets/assetsAndroid/star-off/hdpi/star-off.png')} />
+                </TouchableOpacity>
+                  )}
+              })()}   
+  </View> 
+)
 }
+  return (
+<FlatList 
+data={spotFilter}
+keyExtractor={(item, index)=> index.toString()}
+renderItem={ItemView }
+/>
+); 
+}
+
+const HeaderButtonComponent = (props) => (
+  <HeaderButton
+    IconComponent={Ionicons}
+    iconSize={25}
+    color="#FFF"
+    {...props}
+  />
+);
+
+var styles = StyleSheet.create({
+  container: {
+    flex: 0.9,
+    marginTop: 20,
+    marginLeft:15
+  },
+  containerImage: {
+    flex: 0.12,
+    marginTop: 10
+  },
+  name: {
+    fontSize: 12,
+    textAlign: 'left',
+    padding: 1,
+  },
+  country: {
+    fontSize: 10,
+    textAlign: 'left',
+    padding: 1,
+  },
+});
   
 Home.navigationOptions = (navData) => {
   return {
-    headerTitle: "KitesurfingApps",
+    headerTitle: "KitesurfingApp",
     headerRight: () => (
-      
-          <TouchableOpacity   onPress={() => navData.navigation.navigate("FiltersScreen")} >
-          <Image style={{ padding: 5, flex: 0.5}} source={require('../assets/assetsAndroid/filter/hdpi/Filter.png')} />
-          </TouchableOpacity>
+          
+               <HeaderButtons HeaderButtonComponent={HeaderButtonComponent}>
+        <Item
+          title="Back"
+          iconName="filter-sharp"
+          onPress={() => navData.navigation.navigate("FiltersScreen")}
+        />
+      </HeaderButtons>
+         
     ),
   };
 };
-
   
 export default Home;
