@@ -5,10 +5,13 @@ import { createStackNavigator } from "react-navigation-stack";
 import HomeScreen from "./Screens/Home";
 import DetailsScreen from "./Screens/Details";
 import FiltersScreen from "./Screens/FiltersScreen";
+import Login from "./Screens/Login"
+import Account from "./Screens/Account";
   
 const AppNavigator = createStackNavigator(
-  {
+  {  Login: Login,
     Home: HomeScreen,
+    Account: Account, 
     Details: DetailsScreen,
     FiltersScreen: FiltersScreen,
   },
@@ -25,7 +28,7 @@ const AppNavigator = createStackNavigator(
     },
   },
   {
-    initialRouteName: "Home",
+    initialRouteName: "Login",
   }
 );
   

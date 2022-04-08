@@ -85,15 +85,23 @@ const  Details = (navData) => {
                     (() => {
                       if(favourites.findIndex(e => e.spot == spot.id)>-1) {
                         return (
-                          <TouchableOpacity   onPress={() => deleteFavourite(favourites[favourites.findIndex(e => e.spot == spot.id)].id)} >
-                        <Image style={{ padding: 5, flex: 0.1}} source={require('../assets/assetsAndroid/star-on/hdpi/star-on.png')} />
-                        </TouchableOpacity>
+                          <HeaderButtons HeaderButtonComponent={HeaderButtonComponent}>
+                          <Item
+                            title="star"
+                            iconName="star"
+                            onPress={() => deleteFavourite(favourites[favourites.findIndex(e => e.spot == spot.id)].id)}
+                          />
+                        </HeaderButtons>
                         )}
                         else {
                           return (
-                            <TouchableOpacity   onPress={() => addFavourite(spot.id)}>
-                        <Image style={{ padding: 5, flex: 0.1}} source={require('../assets/assetsAndroid/star-off/hdpi/star-off.png')} />
-                        </TouchableOpacity>
+                            <HeaderButtons HeaderButtonComponent={HeaderButtonComponent}>
+                            <Item
+                              title="star-o"
+                              iconName="star-outline"
+                              onPress={() => addFavourite(spot.id)}
+                            />
+                          </HeaderButtons>
                           )}
                       })()
       ),
@@ -124,19 +132,7 @@ return (
      <Text > { spot.probability}</Text>
      <Text > When to go</Text>
      <Text > { spot.month}</Text>
-     <MapView
-        style={{ padding: 150}}
-        initialRegion={{
-          latitude: parseFloat(spot.lat),
-          longitude:  parseFloat(spot.long),
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}>
-              <Marker
-          coordinate={{latitude: parseFloat(spot.lat), longitude: parseFloat(spot.long)}}
-          title="Maker"
-        />
-        </MapView>
+
    </View> 
   
   );

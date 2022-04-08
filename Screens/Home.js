@@ -1,24 +1,40 @@
 import React, { useState, useEffect   } from "react";
-import { Text, View, TouchableOpacity, Image, FlatList, Platform, StyleSheet } from "react-native";
+import { Text, View, TouchableOpacity, Image, FlatList, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Item,
   HeaderButton,
   HeaderButtons,
 } from "react-navigation-header-buttons";
+import  AsyncStorage  from '@react-native-async-storage/async-storage';
 
 const  Home = (props) =>  {
 
   const [spot, setSpot] = useState([]);
   const [spotFilter, setSpotFilter] = useState([]);
   const [favourites, setFavourites] = useState([]);
+ 
 
   useEffect(() => {
+    console.log(props.navigation.getParam("userId"));
   if(props.navigation.getParam("country") && props.navigation.getParam("wind")){
     searchFilter(props.navigation.getParam("country"), props.navigation.getParam("wind"));
      }
 else {
-  getSpotUsingGet();
+const  _retrieveData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('Spot');
+      if (value !== null) {
+        setSpotFilter(JSON.parse(value));
+        setSpot(JSON.parse(value));
+      }else {
+        getSpotUsingGet();
+      }
+    } catch (error) {
+    }
+  }
+  _retrieveData();
+
   getFavouriteUsingGet();
 }
 
@@ -32,10 +48,13 @@ if(props.navigation.getParam("favourite")){
      fetch('https://624826c94bd12c92f4080a60.mockapi.io/spot', {
       method: 'GET',
     })
-    .then((response) => response.json())
-    .then((responseJson)=>{       
+    .then(async (response) => {return await response.json()})
+    .then(async (responseJson)=>{       
       setSpot(responseJson);
       setSpotFilter(responseJson);
+    
+
+      return await AsyncStorage.setItem("Spot",JSON.stringify(responseJson));
     }).catch(err => console.error(err)); 
   };
 
@@ -107,10 +126,10 @@ return (
     <Text style={styles.name }>{" "+item.name}</Text>
     <Text style={styles.country }>{" "+item.country}</Text>
     </TouchableOpacity>
-  {(() => {
-               if(favourites.findIndex(e => e.spot == item.id)>-1) {
+  {(() => {   let x=favourites.findIndex(e => e.spot == item.id);
+               if(x>-1) {
                 return (
-                  <TouchableOpacity style={styles.containerImage}  onPress={() => deleteFavourite(favourites[favourites.findIndex(e => e.spot == item.id)].id)} >
+                  <TouchableOpacity style={styles.containerImage}  onPress={() => deleteFavourite(favourites[x].id)} >
                 <Image  source={require('../assets/assetsAndroid/star-on/hdpi/star-on.png')} />
                 </TouchableOpacity>
                 )}
@@ -178,6 +197,15 @@ Home.navigationOptions = (navData) => {
       </HeaderButtons>
          
     ),
+    headerLeft: () => (
+    <HeaderButtons HeaderButtonComponent={HeaderButtonComponent}>
+    <Item
+      title="Back"
+      iconName="ios-person-circle-outline"
+      onPress={() => navData.navigation.navigate("Account", {userId: navData.navigation.getParam("userId")})}
+    />
+  </HeaderButtons>
+  ),
   };
 };
   
