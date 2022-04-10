@@ -1,5 +1,5 @@
 import React, { useState, useEffect   } from "react";
-import { Text, View, TouchableOpacity, Image, FlatList, StyleSheet } from "react-native";
+import { Text, View, TouchableOpacity, Image, FlatList, StyleSheet, BackHandler } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Item,
@@ -16,12 +16,26 @@ const  Home = (props) =>  {
  
 
   useEffect(() => {
+
     console.log(props.navigation.getParam("userId"));
   if(props.navigation.getParam("country") && props.navigation.getParam("wind")){
     searchFilter(props.navigation.getParam("country"), props.navigation.getParam("wind"));
      }
 else {
-const  _retrieveData = async () => {
+  _retrieveData();
+  getFavouriteUsingGet();
+
+}
+
+if(props.navigation.getParam("favourite")){
+  getFavouriteUsingGet();
+}
+
+BackHandler.addEventListener('hardwareBackPress', function() {return true});
+    return ()=>{}
+  }, [props])
+
+  const  _retrieveData = async () => {
     try {
       const value = await AsyncStorage.getItem('Spot');
       if (value !== null) {
@@ -33,16 +47,6 @@ const  _retrieveData = async () => {
     } catch (error) {
     }
   }
-  _retrieveData();
-
-  getFavouriteUsingGet();
-}
-
-if(props.navigation.getParam("favourite")){
-  getFavouriteUsingGet();
-} 
-    return ()=>{}
-  }, [props])
 
  const getSpotUsingGet =()=>  {
      fetch('https://624826c94bd12c92f4080a60.mockapi.io/spot', {

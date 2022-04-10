@@ -1,14 +1,36 @@
 import { Text, TextInput, View, TouchableOpacity, Image, StatusBar, StyleSheet, Alert } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Checkbox } from 'react-native-paper';
+import  AsyncStorage  from '@react-native-async-storage/async-storage';
 
 const Login =(props) =>{
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [checked, setChecked] = useState(false);
+
+    useEffect(() => {
+      checkAccount();
+
+     }, [])
+
+    const checkAccount  = async ()=>{
+      
+        try {
+          const value = await AsyncStorage.getItem("User");
+          console.log("Intra aici "+JSON.parse(value).userId);
+          if (value !== null) {
+          //console.log("Intra aici "+ value[userId]);
+          return props.navigation.navigate("Home", {userId: JSON.parse(value).userId});
+          }
+        } catch (error) {
+        }
+    }
 
     const addLogin = () => {
         let item={email, password};
         console.log(email+" ep "+password);
+
         if(email.length>0 && password.length>0){
         fetch(`https://624826c94bd12c92f4080a60.mockapi.io/login`, {
           method: 'POST',
@@ -17,10 +39,15 @@ const Login =(props) =>{
             'Content-Type':'application/json'
           },
           body:JSON.stringify(item)
-        }).then((result) => {
-          result.json().then((resp) => {
-            console.log("Login merge "+resp.userId);
-         
+        }).then( (result) => {
+          result.json().then( (resp) => {
+            console.log("Login merge "+JSON.stringify(resp));
+            if(checked){
+               AsyncStorage.setItem("User",JSON.stringify(resp));
+              console.log("Salvare date in cache "+JSON.stringify(resp));
+            }
+            setPassword("");
+            setEmail("");
           return props.navigation.navigate("Home", {userId: resp.userId});
           })
         })
@@ -28,6 +55,10 @@ const Login =(props) =>{
        showAlert();
         }
     }
+
+
+ 
+
     const showAlert = () =>{
         Alert.alert(
            'Insert Username and Password'
@@ -44,6 +75,7 @@ const Login =(props) =>{
               style={styles.TextInput}
               placeholder="Email."
               placeholderTextColor="#003f5c"
+              value={email}
               onChangeText={(email) => setEmail(email)}
             />
           </View>
@@ -54,10 +86,21 @@ const Login =(props) =>{
               placeholder="Password."
               placeholderTextColor="#003f5c"
               secureTextEntry={true}
+              value={password}
               onChangeText={(password) => setPassword(password)}
             />
           </View>
-     
+          <View  style={{flexDirection: "row",} }>
+          <Text style={{marginTop:8}}> Remember me</Text>
+          <Checkbox
+           
+      status={checked ? 'checked' : 'unchecked'}
+      onPress={() => {
+        setChecked(!checked);
+      }}
+    />
+    </View>
+  
      
           <TouchableOpacity style={styles.loginBtn} onPress={() =>addLogin()}>
             <Text style={styles.loginText}>LOGIN</Text>

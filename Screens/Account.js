@@ -1,5 +1,6 @@
 import { Text, TextInput, View, TouchableOpacity, Image, StatusBar, StyleSheet, Alert } from "react-native";
 import React, { useState, useEffect   } from "react";
+import  AsyncStorage  from '@react-native-async-storage/async-storage';
 
 const Account =(props) =>{
 
@@ -10,7 +11,6 @@ const Account =(props) =>{
      addUser();
        }, [])
 
-
     const addUser = () => {
         fetch(`https://624826c94bd12c92f4080a60.mockapi.io/user/${props.navigation.getParam("userId")}`, {
             method: 'GET',
@@ -18,23 +18,32 @@ const Account =(props) =>{
         .then((response) => response.json())
         .then((responseJson)=>{       
           setUser(responseJson);
-          console.log("Merge "+ responseJson);
         }).catch(err => console.error(err)); 
       };
-    
 
+    const logOut = async () =>{
+      try {
+       await AsyncStorage.removeItem("User");
+       props.navigation.navigate("Login");
+
+      } catch (error) {
+      }
+
+
+    }  
+    
      return (
         <View style={styles.container}>
-               
-     <Text > Name</Text>
-     <Text > { user.name}</Text>
-     <Text > Avatar</Text>
-     <Text > { user.avatar}</Text>
-     <Text > Email</Text>
-     <Text > { user.email}</Text>
-
+           <Text style={styles.TextImput}>Avatar</Text>
+               <Image  style={{width: 50, height: 50}} source={{ uri: user.avatar }} />
+     <Text style={styles.TextImput}>Name</Text>
+     <Text style={styles.Text}> { user.name}</Text>
+     <Text style={styles.TextImput}>Email</Text>
+     <Text style={styles.Text}> { user.email}</Text>
+     <TouchableOpacity style={styles.logoutBtn} onPress={() => logOut() }>
+            <Text style={styles.loginText}>LOGOUT</Text>
+          </TouchableOpacity>
    </View> 
-        
       );
     }
      
@@ -43,32 +52,27 @@ const Account =(props) =>{
         flex: 1,
         backgroundColor: "#fff",
         alignItems: "center",
-        justifyContent: "center",
       },
      
       image: {
         marginBottom: 40,
       },
      
-      inputView: {
-        backgroundColor: "#DCDCDC",
-        borderRadius: 30,
-        width: "70%",
-        height: 45,
-        marginBottom: 20,
-     
-        alignItems: "center",
-      },
-     
-      TextInput: {
-        height: 50,
-        flex: 1,
-        padding: 10,
+      Text: {
+        height: 5,
+       flex: 0.1,
+        padding: 5,
         marginLeft: 20,
       },
+      TextImput: {
+        height: 5,
+       flex: 0.1,
+        padding: 5,
+        marginLeft: 20,
+        fontSize: 20
+      },
      
-     
-      loginBtn: {
+      logoutBtn: {
         width: "40%",
         borderRadius: 25,
         height: 50,
