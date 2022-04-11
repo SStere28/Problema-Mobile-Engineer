@@ -1,4 +1,4 @@
-import { Text, TextInput, View, TouchableOpacity, Image, StatusBar, StyleSheet, Alert } from "react-native";
+import { Text, View, TouchableOpacity, Image, StyleSheet} from "react-native";
 import React, { useState, useEffect   } from "react";
 import  AsyncStorage  from '@react-native-async-storage/async-storage';
 
@@ -7,7 +7,6 @@ const Account =(props) =>{
     const [user, setUser] = useState("");
 
     useEffect(() => {
-        console.log(""+props.navigation.getParam("userId"));
      addUser();
        }, [])
 
@@ -25,11 +24,8 @@ const Account =(props) =>{
       try {
        await AsyncStorage.removeItem("User");
        props.navigation.navigate("Login");
-
       } catch (error) {
       }
-
-
     }  
     
      return (
@@ -62,13 +58,11 @@ const Account =(props) =>{
         height: 5,
        flex: 0.1,
         padding: 5,
-        marginLeft: 20,
       },
       TextImput: {
         height: 5,
        flex: 0.1,
         padding: 5,
-        marginLeft: 20,
         fontSize: 20
       },
      

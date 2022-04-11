@@ -16,13 +16,11 @@ const  Home = (props) =>  {
  
 
   useEffect(() => {
-
-    console.log(props.navigation.getParam("userId"));
   if(props.navigation.getParam("country") && props.navigation.getParam("wind")){
     searchFilter(props.navigation.getParam("country"), props.navigation.getParam("wind"));
      }
 else {
-  _retrieveData();
+  retrieveData();
   getFavouriteUsingGet();
 
 }
@@ -35,7 +33,7 @@ BackHandler.addEventListener('hardwareBackPress', function() {return true});
     return ()=>{}
   }, [props])
 
-  const  _retrieveData = async () => {
+  const  retrieveData = async () => {
     try {
       const value = await AsyncStorage.getItem('Spot');
       if (value !== null) {
@@ -48,64 +46,67 @@ BackHandler.addEventListener('hardwareBackPress', function() {return true});
     }
   }
 
- const getSpotUsingGet =()=>  {
-     fetch('https://624826c94bd12c92f4080a60.mockapi.io/spot', {
-      method: 'GET',
-    })
-    .then(async (response) => {return await response.json()})
-    .then(async (responseJson)=>{       
-      setSpot(responseJson);
-      setSpotFilter(responseJson);
-    
 
-      return await AsyncStorage.setItem("Spot",JSON.stringify(responseJson));
-    }).catch(err => console.error(err)); 
-  };
-
-  const getFavouriteUsingGet = ()=>{
-    fetch('https://624826c94bd12c92f4080a60.mockapi.io/favourites', {
-      method: 'GET',
-    })
-    .then(function(response) {
-      response.json().then(function(users){
-        setFavourites(users);
-        
+  const getSpotUsingGet =async()=>  {
+    try {
+      const response = await fetch(`https://624826c94bd12c92f4080a60.mockapi.io/spot`, {
+        method: 'GET',
       });
-    }).catch(err => console.error(err)); 
+      const json = await response.json();
+      setSpot(json);
+      setSpotFilter(json);
+      return await AsyncStorage.setItem("Spot",JSON.stringify(responseJson));
+    } catch (error) {
+      console.error(error);
+    }
+ };
 
+
+  const getFavouriteUsingGet = async ()=>{
+    try {
+      const response = await fetch('https://624826c94bd12c92f4080a60.mockapi.io/favourites', {
+        method: 'GET',
+      });
+      const data = await response.json();
+      setFavourites([...data]);
+    } catch (error) {
+      console.error(error);
+    }
+   }
+
+  const  deleteFavourite =async (id)=> {
+    try {
+      await 
+      fetch(`https://624826c94bd12c92f4080a60.mockapi.io/favourites/${id}`, {
+        method: 'DELETE'
+      });
+      if(props.navigation.getParam("country")){
+        searchFilter(props.navigation.getParam("country"), props.navigation.getParam("wind"));
+         }
+        setFavourites(favourites.filter(favorite => favorite.id != id));
+    } catch (error) {
+      console.error(error);
+    }
   }
-  
-  const deleteFavourite =(id)=> {
-    fetch(`https://624826c94bd12c92f4080a60.mockapi.io/favourites/${id}`, {
-      method: 'DELETE'
-    }).then((result) => {
-      result.json().then((resp) => {
-        if(props.navigation.getParam("country")){
-          searchFilter(props.navigation.getParam("country"), props.navigation.getParam("wind"));
-          getFavouriteUsingGet(); }
-      else {
-        getFavouriteUsingGet(); }
-      })
-    })
-  }
+
   const addFavourite = (spot) => {
-    let item={spot};
-    fetch(`https://624826c94bd12c92f4080a60.mockapi.io/favourites/`, {
+    
+  fetch(`https://624826c94bd12c92f4080a60.mockapi.io/favourites/`, {
       method: 'POST',
       headers:{
         'Accept':'application/json',
         'Content-Type':'application/json'
       },
-      body:JSON.stringify(item)
+      body:JSON.stringify({spot})
     }).then((result) => {
       result.json().then((resp) => {
         if(props.navigation.getParam("country")){
           searchFilter(props.navigation.getParam("country"), props.navigation.getParam("wind"));
-          getFavouriteUsingGet();}
-      else {
-        getFavouriteUsingGet(); }
+        }
+        getFavouriteUsingGet(); 
       })
     })
+
   }
 
  const searchFilter =(country, wind)=>{

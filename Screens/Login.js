@@ -18,9 +18,7 @@ const Login =(props) =>{
       
         try {
           const value = await AsyncStorage.getItem("User");
-          console.log("Intra aici "+JSON.parse(value).userId);
           if (value !== null) {
-          //console.log("Intra aici "+ value[userId]);
           return props.navigation.navigate("Home", {userId: JSON.parse(value).userId});
           }
         } catch (error) {
@@ -29,7 +27,6 @@ const Login =(props) =>{
 
     const addLogin = () => {
         let item={email, password};
-        console.log(email+" ep "+password);
 
         if(email.length>0 && password.length>0){
         fetch(`https://624826c94bd12c92f4080a60.mockapi.io/login`, {
@@ -55,9 +52,6 @@ const Login =(props) =>{
        showAlert();
         }
     }
-
-
- 
 
     const showAlert = () =>{
         Alert.alert(

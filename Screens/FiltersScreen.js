@@ -8,23 +8,28 @@ const FiltersScreen = (param) => {
 const [spot, setSpot] = useState([]);
 const [ wind, setWind] = useState('');
 const [ country, setCountry] = useState('');
-const childRef = useRef()
+
+
 useEffect(() => {
  if( param.navigation.getParam("country")){
    console.log("Merge "+param.navigation.getParam("country"));
  }
-  getDataUsingGet();
+ const retriveData = async () => {
+  await getSpotUsingGet();
+}
+retriveData();
 }, [])
 
-const getDataUsingGet = ()=>  {
-   fetch('https://624826c94bd12c92f4080a60.mockapi.io/spot', {
-    method: 'GET',
-  })
-  .then(function(response) {
-    response.json().then(function(users){
-      setSpot(users);
+const getSpotUsingGet =async()=>  {
+  try {
+    const response = await fetch(`https://624826c94bd12c92f4080a60.mockapi.io/spot`, {
+      method: 'GET',
     });
-  }).catch(err => console.error(err)); 
+    const json = await response.json();
+    setSpot(json);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const getCountries = ()=> {
@@ -56,68 +61,51 @@ const getCountries = ()=> {
         keyboardType='numeric'
          onChangeText={text => setWind(text)}
       />
-                   <View style={styles.containerButton}  onPress={() => param.navigation.navigate("Home", {country: country, wind: wind })} >    
-                    <Text style={styles.title} onPress={() => param.navigation.navigate("Home", {country: country, wind: wind })}> Filter</Text>
-                </View>
-
+           <TouchableOpacity style={styles.filterBtn} onPress={() => param.navigation.navigate("Home", {country: country, wind: wind }) }>
+            <Text >Filter</Text>
+          </TouchableOpacity>
     </View>
-     
+   
   );
-
-  
-
-
 };
 
 var styles = StyleSheet.create({
-
   container: {
-    flex:1,
-    marginTop: 20,
-    marginLeft:15
-  },
-  containerImage: {
-    flex: 0.12,
-    marginTop: 10
-  },
-  name: {
-    fontSize: 12,
-    textAlign: 'left',
-    padding: 1,
+    flex: 1,
+    alignItems: "center",
   },
   wind: {
     marginTop: 30,
     marginLeft: 15,
-    fontSize: 12,
-    textAlign: 'left',
+    fontSize: 20,
+    textAlign: 'center',
     padding: 1,
   },
   country: {
     marginTop: 30,
-    marginLeft: 15,
-    fontSize: 12,
-    textAlign: 'left',
+    fontSize: 20,
+    textAlign: 'center',
     padding: 1,
   },
   selectDropdown: {
     marginTop: 30,
-    marginLeft: 15,
     fontSize: 23,
-    textAlign: 'right',
-    padding: 1,
+    textAlign: 'center',
   },
-  button: {
-    marginTop: 30,
-    marginLeft: 15,
-    marginTop: 30,
-    fontSize: 23,
-    padding: 24,
-    
+  TextImput: {
+    height: 5,
+   flex: 0.1,
+    padding: 5,
+    fontSize: 20
   },
-  containerButton: {
-    flex: 1,
-    padding: 24,
-    backgroundColor: "#eaeaea"
+  filterBtn: {
+    width: "40%",
+    borderRadius: 25,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 40,
+    backgroundColor: "#4169E1",
   },
   title: {
     marginTop: 16,
